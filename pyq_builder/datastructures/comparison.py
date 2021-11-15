@@ -47,8 +47,13 @@ class Is(Comparison):
 
 
 class Comparator(Protocol):
-    def __init__(self, comp: Comparison):
-        ...
+    def __init__(self, comp: Comparison, table: str):
+        self._comp = comp
+        self._table = table
+
+    @property
+    def table(self):
+        return self._table
 
     def stringify(self, field: str, parameter: str) -> str:
         ...

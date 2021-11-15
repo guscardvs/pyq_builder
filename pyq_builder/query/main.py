@@ -1,6 +1,6 @@
 import typing
 
-from pyq_builder import connection, mapper, utils
+from pyq_builder import connection, datastructures, mapper
 from pyq_builder.dialects.base import Dialect
 
 from . import clauses
@@ -20,7 +20,7 @@ class Query(typing.Generic[T]):
     ) -> None:
         self._dialect = dialect
         self._mapper = mapper_class(klass, table)
-        self._clauses = utils.RootNode[clauses.Clause, clauses.Clause]()
+        self._clauses = datastructures.RootNode[clauses.Clause, clauses.Clause]()
         self._post_init()
 
     def _post_init(self):

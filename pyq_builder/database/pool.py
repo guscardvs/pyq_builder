@@ -1,14 +1,15 @@
 import typing
 from contextlib import asynccontextmanager
 
-from pyq_builder.config import QBuilderConfig
 from pyq_builder.connection.base import Connection
-from pyq_builder.dialects.base import Connector
+from pyq_builder.dialects.base import Connector, QBuilderConfig
 
 
 class Pool(typing.Protocol):
     def __init__(self, config: QBuilderConfig, connector: Connector):
-        ...
+        self._config = config
+        self._connector = connector
+        raise NotImplementedError
 
     @property
     def is_connected(self) -> bool:
@@ -42,7 +43,6 @@ class SingletonPool:
 
     @property
     def is_connected(self):
-        # TODO add implementation
         return self.conn is not None and self._connector.is_closed(self.conn)
 
     async def create(self):

@@ -1,21 +1,19 @@
-from typing import Callable, Tuple
+from typing import Tuple
 
-from .base import FormatClause
+from pyq_builder.dialects.base import Dialect
+
+from .base import KeywordClause
 
 
-class Select(FormatClause):
-    def __init__(
-        self,
-        table: str,
-        fields: Tuple[str, ...],
-        stringify_statement: Callable[[str], str],
-    ) -> None:
-        self.table = table
-        self.fields = fields
-        self._stringify_statement = stringify_statement
+class Select(KeywordClause):
+    def __init__(self, table: str, fields: Tuple[str, ...], dialect: Dialect) -> None:
+        self._table = table
+        self._fields = fields
+        self._dialect = dialect
 
-    def stringify(self, string: str) -> str:
-        return string.format(
-            fields=", ".join(self._stringify_statement(field) for field in self.fields),
-            table=self._stringify_statement(self.table),
-        )
+    @property
+    def table(self):
+        return self._table
+
+    def stringify(self) -> str:
+        return self._dialect.resolver.search(self._fields, self._table).stringify()

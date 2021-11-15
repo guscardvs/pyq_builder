@@ -1,9 +1,9 @@
 import typing
 
+from pyq_builder.datastructures.params import Parameter
 from pyq_builder.dialects.base import Dialect
 from pyq_builder.query import filters
 from pyq_builder.query.clauses.base import KeywordClause
-from pyq_builder.utils.params import Parameter
 
 JoinsT = typing.TypeVar("JoinsT", bound=filters.FilterJoins)
 
@@ -41,12 +41,14 @@ class JoinsWhere(KeywordClause, typing.Generic[JoinsT]):
         if isinstance(filter_clause, filters.Field):
             clause, self._position = Where(
                 Parameter(
-                    filter_clause.field,
-                    self._dialect.stringify_statement(filter_clause.field),
-                    self._dialect.resolver.compare(
-                        filter_clause.field, filter_clause.comp
+                    field=filter_clause.field,
+                    escaped_field=self._dialect.stringify_statement(
+                        filter_clause.field
                     ),
-                    position,
+                    comparator=self._dialect.resolver.compare(
+                        filter_clause.comp, filter_clause.table
+                    ),
+                    position=position,
                 ),
                 self._dialect,
             ).increment()

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from typing_extensions import TypeGuard
 
-from ..utils import comparison
+from pyq_builder.datastructures import comparison
 
 
 class Filter:
@@ -22,6 +22,7 @@ class Filter:
 class Field(Filter):
     field: str
     comp: comparison.Comparison = comparison.Equal()
+    table: typing.Optional[str] = None
 
     def similar_to(self, filter_clause: Filter) -> "TypeGuard[Field]":
         if not isinstance(filter_clause, type(self)):

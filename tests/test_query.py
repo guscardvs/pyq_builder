@@ -74,5 +74,5 @@ def test_list_should_return_valid_querystring_when_receiving_class(
 ):
     assert (
         str(select(MyObject).get(q_builder.dialect).where(Field("name")))
-        == "SELECT `name`, `value` FROM `myobject` WHERE `name` = :name"
+        == "SELECT `myobject`.`name`, `myobject`.`value` FROM `myobject` WHERE `myobject`.`name` = :myobject@name"
     )

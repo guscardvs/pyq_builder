@@ -1,6 +1,6 @@
 import dataclasses
 
-from pyq_builder.utils.comparison import Comparator
+from pyq_builder.datastructures.comparison import Comparator
 
 
 @dataclasses.dataclass
@@ -11,7 +11,7 @@ class Parameter:
     position: int
 
     def parametrize(self):
-        return f":{self.field}"
+        return f":{self.comparator.table}@{self.field}"
 
     def __str__(self):
         return self.comparator.stringify(

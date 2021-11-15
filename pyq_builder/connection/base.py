@@ -6,7 +6,10 @@ class Connection(typing.Protocol):
     def closed(self) -> bool:
         return True
 
-    async def execute(self, q_str, params):
+    async def read(self, q_str, params):
+        pass
+
+    async def write(self, q_str, params):
         pass
 
     async def close(self) -> None:

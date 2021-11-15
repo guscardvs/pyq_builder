@@ -3,14 +3,18 @@ from contextlib import asynccontextmanager
 
 import aiomysql
 
-from pyq_builder.config import QBuilderConfig
 from pyq_builder.connection import Connection
-from pyq_builder.utils.result import ResultParser
+from pyq_builder.datastructures.result import ResultParser
+from pyq_builder.dialects.base import QBuilderConfig
 
 
 class MysqlConnection(Connection):
     def __init__(self, conn: aiomysql.Connection):
         self._db_conn = conn
+
+    @property
+    def dialect_conn(self):
+        return self._db_conn
 
     @property
     def closed(self) -> bool:
@@ -26,15 +30,24 @@ class MysqlConnection(Connection):
     def _parametrize_string(self, q_str: str):
         pass
 
-    async def execute(self, q_str, params):
+    async def read(self, q_str, params):
         async with self._db_conn.cursor() as cursor:
             executor = (
                 cursor.execute if not isinstance(params, list) else cursor.executemany
             )
-            result = await executor(
+            await executor(
                 self._parametrize_string(q_str), self._parametrize(params)
             )
-            return ResultParser(result)
+            return ResultParser(await cursor.fetchall())
+
+    async def write(self, q_str, params):
+        async with self._db_conn.cursor() as cursor:
+            executor = (
+                cursor.execute if not isinstance(params, list) else cursor.executemany
+            )
+            await executor(
+                self._parametrize_string(q_str), self._parametrize(params)
+            )
 
 
 class MysqlConnector:
@@ -47,10 +60,11 @@ class MysqlConnector:
     @asynccontextmanager
     async def acquire(self) -> MysqlConnection:
         async with self._db_pool.acquire() as conn:
-            yield MysqlConnection(conn)
+            async with conn.begin():
+                yield MysqlConnection(conn)
 
     async def release(self, client: MysqlConnection) -> None:
-        self._db_pool.release(client)
+        self._db_pool.release(client.dialect_conn)
 
     @staticmethod
     def is_closed(client: MysqlConnection):
@@ -64,7 +78,7 @@ class MysqlConnector:
                 port=self._cfg.get_port(),
                 user=self._cfg.user,
                 password=self._cfg.passwd,
-                db=self._cfg.name,
+                db=self._cfg.database,
                 cursorclass=aiomysql.DictCursor,
             )
         )
@@ -75,7 +89,7 @@ class MysqlConnector:
             port=self._cfg.get_port(),
             user=self._cfg.user,
             password=self._cfg.passwd,
-            db=self._cfg.name,
+            db=self._cfg.database,
             maxsize=self._cfg.pool_size,
             pool_recycle=self._cfg.pool_recycle,
             cursorclass=aiomysql.DictCursor,
